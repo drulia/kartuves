@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Classic favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon-64x64.png">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- Android / PWA Icon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
+
+    <!-- Favicon .ico for compatibility -->
+    <link rel="shortcut icon" href="favicon.ico">
+    <title>Kartuvės</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+
+        .hangman-drawing {
+            width: 200px;
+            height: 250px;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+
+        .word-display {
+            margin: 20px 0;
+            font-size: 2em;
+            letter-spacing: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .key {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1.2em;
+            transition: background-color 0.2s;
+        }
+
+        .key:hover {
+            background-color: #2980b9;
+        }
+
+        .key.used {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .key.correct {
+            background-color: #2ecc71;
+        }
+
+        .key.wrong {
+            background-color: #e74c3c;
+        }
+
+        .result-message {
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            min-height: 40px;
+        }
+
+        .new-game-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+
+        .hangman-part {
+            position: absolute;
+            background-color: #333;
+        }
+
+        #scaffold {
+            width: 10px;
+            height: 220px;
+            left: 30px;
+            bottom: 10px;
+        }
+
+        #beam {
+            width: 100px;
+            height: 10px;
+            left: 30px;
+            top: 10px;
+        }
+
+        #rope {
+            width: 5px;
+            height: 30px;
+            left: 130px;
+            top: 10px;
+        }
+
+        #head {
+            width: 40px;
+            height: 40px;
+            left: 107px;
+            top: 40px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: 5px solid #333;
+        }
+
+        #body {
+            width: 5px;
+            height: 70px;
+            left: 130px;
+            top: 85px;
+        }
+
+        #left-arm {
+            width: 50px;
+            height: 5px;
+            left: 84px;
+            top: 110px;
+            transform: rotate(30deg);
+        }
+
+        #right-arm {
+            width: 50px;
+            height: 5px;
+            left: 131px;
+            top: 110px;
+            transform: rotate(-30deg);
+        }
+
+        #left-leg {
+            width: 50px;
+            height: 5px;
+            left: 89px;
+            top: 170px;
+            transform: rotate(-45deg);
+        }
+
+        #right-leg {
+            width: 50px;
+            height: 5px;
+            left: 126px;
+            top: 170px;
+            transform: rotate(45deg);
+        }
+
+        .hangman-part {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Kartuvės</h1>
+
+        <div class="game-container">
+            <div class="hangman-drawing">
+                <div id="scaffold" class="hangman-part"></div>
+                <div id="beam" class="hangman-part"></div>
+                <div id="rope" class="hangman-part"></div>
+                <div id="head" class="hangman-part"></div>
+                <div id="body" class="hangman-part"></div>
+                <div id="left-arm" class="hangman-part"></div>
+                <div id="right-arm" class="hangman-part"></div>
+                <div id="left-leg" class="hangman-part"></div>
+                <div id="right-leg" class="hangman-part"></div>
+            </div>
+
+            <div class="game-info">
+                <p>Klaidingi spėjimai: <span id="wrong-count">0</span>/9</p>
+                <div class="word-display" id="word-display"></div>
+                <p>Užuomina: <span id="hint">Dažnas žodis</span></p>
+            </div>
+        </div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div class="result-message" id="result-message"></div>
+
+        <button class="new-game-btn" id="new-game-btn">Naujas žaidimas</button>
+    </div>
+
+    <script>
+        const words = [
+            { word: "NAMAS", hint: "Vieta, kurioje žmonės gyvena" },
+            { word: "KARTUVĖS", hint: "Šio žaidimo pavadinimas" },
+            { word: "KATĖ", hint: "Murkimas ir pelyčių gaudymas jai būdingas" },
+            { word: "ŽMOGUS", hint: "Protingiausia būtybė planetoje" },
+            { word: "SVAJONĖ", hint: "Tai, kas aplanko miegant ar fantazuojant" },
+            { word: "DRAUGYSTĖ", hint: "Artima jungtis tarp žmonių (arba net gyvūnų)" },
+            { word: "LIETUS", hint: "Vanduo, krintantis iš dangaus" },
+            { word: "SNIEGAS", hint: "Baltas ir šaltas, krenta žiemą" },
+            { word: "KELIONĖ", hint: "Išvykimas ieškant naujų vietų ir įspūdžių" },
+            { word: "MEILĖ", hint: "Stiprus jausmas, suartinantis žmones" },
+            { word: "VĖJAS", hint: "Nepastebimas, bet jaučiamas, judina orą" },
+            { word: "DRAUGAS", hint: "Asmuo, su kuriuo sieja artimas ryšys" },
+            { word: "RUDUO", hint: "Metų laikas, kai medžių lapai keičia spalvą" },
+            { word: "SAULĖ", hint: "Žvaigždė, nuo kurios priklauso Žemės šviesa ir šiluma" },
+            { word: "PAVASARIS", hint: "Metų laikas, kai viskas atgyja" },
+            { word: "LIETUVA", hint: "Mūsų gimtoji šalis" },
+            { word: "VILKAS", hint: "Miško plėšrūnas, primenantis didelį šunį" },
+            { word: "UOGOS", hint: "Maži, sultingi vaisiai, dažnai valgomi vasarą" },
+            { word: "SKRYNIA", hint: "Dėžė daiktams laikyti" },
+            { word: "KNYGA", hint: "Spausdintų žodžių rinkinys" },
+            { word: "KOLEKCIJA", hint: "Įvairių tos pačios rūšies daiktų rinkinys" },
+            { word: "PIRAMIDĖ", hint: "Senovės Egipto statinys su keturkampiu pamatu" },
+            { word: "HIPOTENŪZĖ", hint: "Trikampio kraštinė prieš statųjį kampą" },
+            { word: "LITERATŪRA", hint: "Rašytinių kūrinių menas" },
+            { word: "KOMPIUTERIS", hint: "Elektroninis prietaisas duomenims apdoroti" },
+            { word: "INTERPRETACIJA", hint: "Aiškinimo procesas, teksto prasmės nustatymas" },
+            { word: "OBJEKTYVAS", hint: "Fotografijos įtaiso dalis, nukreipianti šviesą į jutiklį" },
+            { word: "SIMFONIJA", hint: "Platus muzikinis kūrinys, dažniausiai atliekamas orkestro" },
+            { word: "FILOSOFIJA", hint: "Mąstymo ir būties reiškinių nagrinėjimo mokslas" },
+            { word: "AUTORITETAS", hint: "Asmens ar institucijos įtakinga, gerbiama padėtis" },
+            { word: "ANALIZĖ", hint: "Išsamus nagrinėjimas" },
+            { word: "KONCENTRACIJA", hint: "Dėmesio sutelkimas" },
+            { word: "REDAGAVIMAS", hint: "Teksto koregavimas" },
+            { word: "KATEDRA", hint: "Didelė bažnyčia, vyskupo sosto vieta" },
+            { word: "ORTOGRAFIJA", hint: "Taisyklingo rašymo sistema" },
+            { word: "EKOLOGIJA", hint: "Mokslas apie organizmų ir aplinkos ryšius" },
+            { word: "PARADOKSAS", hint: "Tariamasis prieštaravimas" },
+            { word: "METAFORA", hint: "Perkeltinės reikšmės kalbos priemonė" },
+            { word: "IMPROVIZACIJA", hint: "Spontaniškas kūrybinis veiksmas" },
+            { word: "BIUROKRATIJA", hint: "Perteklinių taisyklių ir formalumų sistema" },
+
+            { word: "SINTAKSĖ", hint: "Kalbotyros dalis apie sakinio sandarą" },
+            { word: "APSKAITA", hint: "Finansinių operacijų registravimas" },
+            { word: "ILIUMINACIJA", hint: "Apšvietimas ar puošnus rankraščio papuošimas" },
+            { word: "VALDŽIA", hint: "Institucija, priimanti visuomenei privalomus sprendimus" },
+            { word: "IMUNITETAS", hint: "Organizmo atsparumas ligoms" },
+            { word: "REPUTACIJA", hint: "Visuomenės nuomonė apie asmenį ar organizaciją" },
+            { word: "TENDENCIJA", hint: "Polinkis kryptingai vystytis" },
+            { word: "PSICHOLOGIJA", hint: "Mokslas apie psichiką ir elgesį" },
+            { word: "MANDAGUMAS", hint: "Taktiškas, pagarbūs bendravimo įpročiai" },
+            { word: "KONSTRUKCIJA", hint: "Struktūrinis objektas ar modelis" },
+
+            { word: "GRAVITACIJA", hint: "Visuotinio traukos jėga" },
+            { word: "DEDUKCIJA", hint: "Išvadų darymas remiantis bendromis prielaidomis" },
+            { word: "INDUKCIJA", hint: "Išvadų darymas remiantis pavyzdžiais" },
+            { word: "ARGUMENTACIJA", hint: "Teiginių pagrindimas įrodymais" },
+            { word: "KILMĖ", hint: "Atsiradimo vieta ar aplinkybės" },
+            { word: "PRINCIPAS", hint: "Pamatinė taisyklė ar nuostata" },
+            { word: "KOMPROMISAS", hint: "Sprendimas, tenkinantis abi puses" },
+            { word: "LOKOMOTYVAS", hint: "Traukinio varomasis vagonas" },
+            { word: "CHEMIJA", hint: "Mokslas apie medžiagų sudėtį ir savybes" },
+            { word: "FORMULĖ", hint: "Matematinis ar cheminis reiškinio užrašas" },
+
+            { word: "GEOMETRIJA", hint: "Matematikos šaka apie figūras ir erdves" },
+            { word: "SINERGIJA", hint: "Bendras veikimas, duodantis geresnį rezultatą" },
+            { word: "HIPOTEZĖ", hint: "Spėjimas, reikalaujantis patikrinimo" },
+            { word: "DEMAGOGIJA", hint: "Apgaulingas masių įtikinėjimas" },
+            { word: "GENETIKA", hint: "Mokslas apie paveldimumą ir kintamumą" },
+            { word: "METODOLOGIJA", hint: "Mokslinių tyrimų metodų visuma" },
+            { word: "KILNUMAS", hint: "Aukštos moralės ir dvasios savybė" },
+            { word: "RETORIKA", hint: "Iškalbos menas, įtikinantis kalbėjimas" },
+            { word: "ASTRONOMIJA", hint: "Dangaus kūnų tyrimo mokslas" },
+            { word: "BIOGRAFIJA", hint: "Asmens gyvenimo aprašymas" },
+
+            { word: "REPORTAŽAS", hint: "Informacinis pasakojimas iš įvykio vietos" },
+            { word: "DIAGNOSTIKA", hint: "Ligos ar trūkumų nustatymas" },
+            { word: "MINIMALIZMAS", hint: "Stilius su labai paprasta forma ir mažai detalių" },
+            { word: "REVOLIUCIJA", hint: "Esminiai visuomenės pokyčiai, dažnai staigūs" },
+            { word: "KRITIKA", hint: "Kūrybos ar elgesio vertinimas" },
+            { word: "PLAGIATAS", hint: "Neteisėtas svetimų idėjų pasisavinimas" },
+            { word: "KOMBINEZONAS", hint: "Vieno gabalo apranga su kelnėmis ir viršumi" },
+            { word: "SPEKTAKLIS", hint: "Teatro vaidinimas" },
+            { word: "METAMORFOZĖ", hint: "Visiškas pavidalo pasikeitimas" },
+            { word: "PROJEKCIJA", hint: "Vaizdo atvaizdavimas kitoje plokštumoje" },
+
+            { word: "TECHNOLOGIJA", hint: "Mokslinių žinių taikymas praktikoje" },
+            { word: "ESTETIKA", hint: "Grožio suvokimo ir vertinimo sritis" },
+            { word: "FUNDAMENTAS", hint: "Pamatinė atrama, pagrindas" },
+            { word: "INICIATYVA", hint: "Veiklos pradėjimas savo noru" },
+            { word: "INSTITUCIJA", hint: "Organizacija su tam tikra funkcija" },
+            { word: "KOORDINATĖS", hint: "Padėties aprašymas matematinėje erdvėje" },
+            { word: "MOTIVACIJA", hint: "Skatinantis veiksnys, noras veikti" },
+            { word: "DEZINFORMACIJA", hint: "Tyčinis klaidinančios informacijos skleidimas" },
+            { word: "PROFESIJA", hint: "Nuolatinė darbo veikla, specialybė" },
+            { word: "REFORMACIJA", hint: "Bažnytinė ir visuomeninė pertvarka" },
+
+            { word: "SAVIANALIZĖ", hint: "Savarankiškas savo minčių ir elgesio nagrinėjimas" },
+            { word: "NOSTALGIJA", hint: "Ilgesys praeities ar namų" },
+            { word: "EPIDEMIJA", hint: "Plati, masiškai plintanti liga" },
+            { word: "KONTRASTAS", hint: "Ryškus skirtumas tarp dviejų dalykų" },
+            { word: "KONKURENCIJA", hint: "Varžymasis dėl geresnės padėties" },
+            { word: "INDUSTRIJA", hint: "Pramonės sritis, ekonominė veikla" },
+            { word: "OPERATORIUS", hint: "Asmuo, valdantis techniką ar prietaisus" },
+            { word: "LABORATORIJA", hint: "Specialus tyrimų kambarys" },
+            { word: "MEDICINA", hint: "Mokslas apie sveikatą ir ligų gydymą" },
+            { word: "RADIJACIJA", hint: "Energetinis spinduliavimas iš tam tikrų šaltinių" },
+
+            { word: "FORMA", hint: "Išorinis pavidalas ar kontūras" },
+            { word: "TALENTAS", hint: "Išskirtiniai gebėjimai ar gabumai" },
+            { word: "PROPAGANDA", hint: "Sistemingas minčių, nuostatų skleidimas" },
+            { word: "DEBESUOTUMAS", hint: "Dangaus padengimas debesimis" },
+            { word: "ILUZIJA", hint: "Klaidinantis vaizdas ar suvokimas" },
+            { word: "KAVALIERIUS", hint: "Mandagus, damai asistuojantis vyras" },
+            { word: "KURATORIUS", hint: "Prižiūrintis asmuo, pvz., parodoje" },
+            { word: "DEKORACIJA", hint: "Puošybos elementas ar scenos aplinka" },
+            { word: "ĮMONĖ", hint: "Verslo subjektas, gaminantis ar teikiantis paslaugas" },
+            { word: "PASLAUGA", hint: "Naudinga veikla, suteikiama kitam už atlygį" },
+
+            { word: "TRANSFORMACIJA", hint: "Esminis formos ar būsenos pasikeitimas" },
+            { word: "KOMPETENCIJA", hint: "Reikiamų žinių, gebėjimų visuma" },
+            { word: "EMIGRACIJA", hint: "Išvykimas gyventi į užsienį" },
+            { word: "FUNKCIJA", hint: "Matematinė ar praktinė užduoties atlikimo paskirtis" },
+            { word: "RENOVACIJA", hint: "Pastato ar objekto atnaujinimo procesas" },
+            { word: "ARCHITEKTAS", hint: "Specialistas, projektuojantis pastatus" },
+            { word: "DIALOGAS", hint: "Pokalbis tarp dviejų ar daugiau žmonių" },
+            { word: "DOKUMENTIKA", hint: "Dokumentinio pobūdžio kūriniai ar filmai" },
+            { word: "DUBLIAVIMAS", hint: "Garso takelio įgarsinimas kita kalba" },
+            { word: "ANTROPOLOGIJA", hint: "Mokslas apie žmogaus kilmę ir raidą" },
+
+            { word: "OPERACIJA", hint: "Medicininė procedūra arba karinis veiksmas" },
+            { word: "ORGANIZACIJA", hint: "Grupė ar įstaiga, siekianti bendro tikslo" },
+            { word: "SEIMAS", hint: "Aukščiausioji įstatymų leidybos institucija" },
+            { word: "PREPARATAS", hint: "Paruošta medžiaga moksliniams tikslams" },
+            { word: "REGISTRACIJA", hint: "Duomenų įrašymas į oficialų sąrašą" },
+            { word: "RENGINYS", hint: "Organizuota veikla ar susitikimas" },
+            { word: "RITUALAS", hint: "Nustatyta apeiga ar įprastas veiksmas" },
+            { word: "SANDARA", hint: "Kažko vidaus struktūra ar sudėtis" },
+            { word: "TEORIJA", hint: "Apibendrinta samprata apie reiškinį" },
+            { word: "VERTIMAS", hint: "Teksto perrašymas kita kalba" },
+            { word: "ABSTRAKCIJA", hint: "Minties ar vaizdo apibendrinimas, atsiribojant nuo detalių" },
+            { word: "ABSOLIUTIZMAS", hint: "Valdymo forma, kurioje valdovas turi neribotą valdžią" },
+            { word: "ADAPTACIJA", hint: "Prisitaikymas prie naujų sąlygų" },
+            { word: "ADVOKATAS", hint: "Teisininkas, ginantis teisme" },
+            { word: "AERODINAMIKA", hint: "Kūnų judėjimo ore dėsningumų mokslas" },
+            { word: "AKADEMIJA", hint: "Mokslo ar meno įstaiga" },
+            { word: "AKTUALIJA", hint: "Šiuo metu svarbus, reikšmingas dalykas" },
+            { word: "ALGORITMAS", hint: "Veiksmų seka uždaviniui spręsti" },
+            { word: "AMNESTIJA", hint: "Dalinis ar visiškas bausmės atleidimas" },
+            { word: "ANARCHIJA", hint: "Valdžios, tvarkos nebuvimas" },
+
+            { word: "ANEKDOTAS", hint: "Trumpas juokingas pasakojimas" },
+            { word: "ANONIMIŠKUMAS", hint: "Neatskleista asmens tapatybė" },
+            { word: "ANOTACIJA", hint: "Trumpas kūrinio ar straipsnio aprašymas" },
+            { word: "AKVARELĖ", hint: "Tapybos technika vandens dažais" },
+            { word: "APENDICITAS", hint: "Prienrio (kirmėlinės ataugos) uždegimas" },
+            { word: "APGAVYSTĖ", hint: "Sukčiavimas, klaidinantis veikimas" },
+            { word: "ARCHEOLOGIJA", hint: "Mokslas, tiriantis senovės kultūras iš radinių" },
+            { word: "ARTILERIJA", hint: "Sunkiųjų pabūklų kariuomenės rūšis" },
+            { word: "ASIMETRIJA", hint: "Simetrijos nebuvimas, nelygus išsidėstymas" },
+            { word: "ASISTENTAS", hint: "Pagalbininkas, padėjėjas tam tikroje veikloje" },
+
+            { word: "ASKEZĖ", hint: "Savanoriškas gyvenimo malonumų atsisakymas" },
+            { word: "ASTMA", hint: "Lėtinė kvėpavimo takų liga" },
+            { word: "ATENCIJA", hint: "Dėmesio rodymas, pagarba" },
+            { word: "ATKAKLUMAS", hint: "Užsispyręs tikslo siekimas" },
+            { word: "AVANTIŪRA", hint: "Rizikingas, dažnai neapgalvotas sumanymas" },
+            { word: "AVARIJA", hint: "Netikėtas įrenginio, mašinos ar sistemos sutrikimas" },
+            { word: "AVERSIJA", hint: "Stiprus neigiamas jausmas ar pasibjaurėjimas" },
+            { word: "AUGMENTACIJA", hint: "Kiekio ar dydžio padidinimas" },
+            { word: "BAKTERIOLOGIJA", hint: "Mokslas apie bakterijas" },
+            { word: "BANALYBĖ", hint: "Įprastas, nusibodęs dalykas, neturintis naujumo" },
+
+            { word: "BARBARIZMAS", hint: "Svetimybė kalboje, netaisyklingas žodis" },
+            { word: "BENDRAAUTORIS", hint: "Asmuo, kūrinio autorius kartu su kitais" },
+            { word: "BIBLIOTERAPIJA", hint: "Gydymo būdas knygomis, skaitymu" },
+            { word: "BIODEGRADACIJA", hint: "Natūralus medžiagų irimas biologinėje aplinkoje" },
+            { word: "BRANDA", hint: "Subrendimo, išsivystymo lygis" },
+            { word: "CEREMONIJA", hint: "Oficialus ar iškilmingas renginys" },
+            { word: "CHIRURGIJA", hint: "Medicinos sritis, gydanti operacijomis" },
+            { word: "CITATA", hint: "Tiksli ištrauka iš kito šaltinio" },
+            { word: "CIVILIZACIJA", hint: "Išsivysčiusi visuomenė su kultūra ir technika" },
+            { word: "DARBOTVARKĖ", hint: "Numatytų darbų, susitikimų sąrašas" },
+
+            { word: "DEKORAVIMAS", hint: "Aplinkos ar daiktų puošimas" },
+            { word: "DELIBERACIJA", hint: "Apsvarstymas, diskusija prieš priimant sprendimą" },
+            { word: "DETALIZACIJA", hint: "Smulkus apibūdinimas, visų detalių išdėstymas" },
+            { word: "DEVALVACIJA", hint: "Valiutos vertės sumažėjimas" },
+            { word: "DIALEKTAS", hint: "Kalbos atmaina, būdinga tam tikrai vietovei" },
+            { word: "DIALEKTIKA", hint: "Prieštaravimų teorija ir jų sprendimo menas" },
+            { word: "DIAPAZONAS", hint: "Apimties ar dažnių skalė" },
+            { word: "DIFERENCIACIJA", hint: "Skirtumų sudarymas, atskyrimas" },
+            { word: "DIRIGENTAS", hint: "Asmuo, vadovaujantis orkestrui ar chorui" },
+            { word: "DISTANCIJA", hint: "Atstumas tarp dviejų taškų" },
+
+            { word: "DIVERSIJA", hint: "Slaptas kenkėjiškas veiksmas" },
+            { word: "DIVIDENDAI", hint: "Pelno dalis, išmokama akcininkams" },
+            { word: "DRAMATURGIJA", hint: "Teatrinių kūrinių rašymo menas" },
+            { word: "EDUKACIJA", hint: "Mokymo ir lavinimo procesas" },
+            { word: "EKSPANSIJA", hint: "Išplitimas, įtakos didinimas" },
+            { word: "EKSPERIMENTAS", hint: "Mokslinis bandymas hipotezei patikrinti" },
+            { word: "EKSTAZĖ", hint: "Didelis pakylėjimo, susižavėjimo jausmas" },
+            { word: "ELEKTROTECHNIKA", hint: "Mokslas apie elektros įrenginius ir jų valdymą" },
+            { word: "EMOCIONALUMAS", hint: "Stiprus jausmų išgyvenimas ir reiškimas" },
+            { word: "ERGONOMIKA", hint: "Aplinkos pritaikymas žmogaus patogumui" },
+
+            { word: "ESKALACIJA", hint: "Palaipsnis didėjimas ar plėtimasis" },
+            { word: "ETALONAS", hint: "Standartinė mato ar kokybės reikšmė" },
+            { word: "ETIMOLOGIJA", hint: "Žodžio kilmės tyrinėjimas" },
+            { word: "EVAKUACIJA", hint: "Žmonių ar turto išgabenimas iš pavojingos zonos" },
+            { word: "FAKTORIUS", hint: "Veiksnys, darantis įtaką reiškiniui" },
+            { word: "FALSETAS", hint: "Nenatūraliai aukštas balsas" },
+            { word: "FANTASTIKA", hint: "Literatūros, kino žanras su antgamtiškais elementais" },
+            { word: "FATALIZMAS", hint: "Įsitikinimas, kad viskas nulemta likimo" },
+            { word: "FILANTROPIJA", hint: "Labdaringa veikla, meilė žmonėms" },
+            { word: "FILOLOGIJA", hint: "Kalbos ir literatūros mokslas" },
+
+            { word: "FOKUSAVIMAS", hint: "Dėmesio sutelkimas į tam tikrą objektą" },
+            { word: "FRAZEOLOGIJA", hint: "Pastovūs kalbos posakiai, frazės" },
+            { word: "FREKVENCIJA", hint: "Pasikartojimų skaičius per laiko vienetą" },
+            { word: "FUNKCIONALUMAS", hint: "Gebėjimas atlikti numatytą veiklą" },
+            { word: "GEOFIZIKA", hint: "Žemės fizinių savybių tyrimas" },
+            { word: "GRAFOMANIJA", hint: "Perteklinis, nekokybiškas rašymas" },
+            { word: "HEGEMONIJA", hint: "Dominavimas kitų atžvilgiu" },
+            { word: "HERBARIUMAS", hint: "Džiovintų augalų rinkinys" },
+            { word: "HIPERBOLĖ", hint: "Meninis perdėjimas, stiprus padidinimas" },
+            { word: "IDEALIZACIJA", hint: "Tikrovės suvokimas kaip tobulesnės nei yra" },
+
+            { word: "IDENTITETAS", hint: "Unikalios asmens ar objekto savybės" },
+            { word: "ILIUSTRACIJA", hint: "Vaizdinis pavyzdys ar piešinys tekste" },
+            { word: "IMITUACIJA", hint: "Atkartojimas, kopijavimas" },
+            { word: "INICIATORIUS", hint: "Tas, kuris pradeda veiksmą ar procesą" },
+            { word: "INSINUACIJA", hint: "Užuomina, kuria siekiama menkinti ar kaltinti" },
+            { word: "INVENTORIUS", hint: "Turto, reikmenų sąrašas" },
+            { word: "INVESTICIJA", hint: "Kapitalo įdėjimas, tikintis pelno" },
+            { word: "IRONIJA", hint: "Išsireiškimas priešinga reikšme, turint pašiepiamą potekstę" },
+            { word: "IZOLIACIJA", hint: "Atskyrimas nuo išorinės aplinkos" },
+            { word: "JURISDIKCIJA", hint: "Teisės galiojimo sritis, kompetencija" },
+
+            { word: "KALIGRAFIJA", hint: "Dailaus rašymo menas" },
+            { word: "KARANTINAS", hint: "Izoliavimas siekiant sustabdyti ligos plitimą" },
+            { word: "KLEPTOMANIJA", hint: "Patologinis potraukis vogti" },
+            { word: "KONFIGŪRACIJA", hint: "Tam tikras elementų išdėstymas, sistemos sąranka" },
+            { word: "KONSERVATYVUMAS", hint: "Polinkis išlaikyti nusistovėjusias tradicijas" },
+            { word: "KONTRINDIKACIJA", hint: "Aplinkybės, dėl kurių negalima taikyti tam tikro gydymo" },
+            { word: "LICEJUS", hint: "Vidurinio ugdymo mokyklos tipas" },
+            { word: "MAGISTRANTŪRA", hint: "Antrosios pakopos universitetinės studijos" },
+            { word: "MANIFESTACIJA", hint: "Viešas įsitikinimų ar reikalavimų pareiškimas" },
+            { word: "NARATYVAS", hint: "Pasakojimas, įvykių atpasakojimo seka" },
+
+            { word: "NEUTRALIZACIJA", hint: "Žalingų savybių ar poveikio pašalinimas" }
+        ];
+
+        let selectedWord = "";
+        let wordHint = "";
+        let guessedLetters = [];
+        let wrongGuesses = 0;
+        let maxWrongGuesses = 9;
+        let gameOver = false;
+
+        // DOM elements
+        const wordDisplayEl = document.getElementById("word-display");
+        const hintEl = document.getElementById("hint");
+        const keyboardEl = document.getElementById("keyboard");
+        const wrongCountEl = document.getElementById("wrong-count");
+        const resultMessageEl = document.getElementById("result-message");
+        const newGameBtn = document.getElementById("new-game-btn");
+        const hangmanParts = document.querySelectorAll(".hangman-part");
+
+        // Initialize the game
+        function initGame() {
+            // Reset variables
+            guessedLetters = [];
+            wrongGuesses = 0;
+            gameOver = false;
+
+            // Select a random word
+            const randomIndex = Math.floor(Math.random() * words.length);
+            selectedWord = words[randomIndex].word;
+            wordHint = words[randomIndex].hint;
+
+            // Update UI
+            updateWordDisplay();
+            hintEl.textContent = wordHint;
+            wrongCountEl.textContent = wrongGuesses;
+            resultMessageEl.textContent = "";
+
+            // Hide all hangman parts
+            hangmanParts.forEach(part => {
+                part.style.display = "none";
+            });
+
+            // Create keyboard
+            createKeyboard();
+        }
+
+        // Create keyboard buttons
+        function createKeyboard() {
+            keyboardEl.innerHTML = "";
+            letters = [
+                "A", "Ą", "B", "C", "Č", "D",
+                "E", "Ę", "Ė", "F", "G", "H",
+                "I", "Į", "Y", "J", "K", "L",
+                "M", "N", "O", "P", "R", "S",
+                "Š", "T", "U", "Ų", "Ū", "V",
+                "Z", "Ž"
+            ]
+
+            // for (let i = 65; i <= 90; i++) {
+            for (let letter of letters) {
+                // const letter = String.fromCharCode(i);
+                const keyButton = document.createElement("button");
+                keyButton.classList.add("key");
+                keyButton.textContent = letter;
+                keyButton.addEventListener("click", () => handleGuess(letter));
+                keyboardEl.appendChild(keyButton);
+            }
+        }
+
+        // Update word display with guessed letters and underscores
+        function updateWordDisplay() {
+            wordDisplayEl.textContent = selectedWord
+                .split("")
+                .map(letter => guessedLetters.includes(letter) ? letter : "_")
+                .join(" ");
+        }
+
+        // Handle letter guess
+        function handleGuess(letter) {
+            if (gameOver || guessedLetters.includes(letter)) return;
+
+            guessedLetters.push(letter);
+
+            // Update keyboard UI
+            const keyButtons = document.querySelectorAll(".key");
+            keyButtons.forEach(button => {
+                if (button.textContent === letter) {
+                    button.classList.add("used");
+                    if (selectedWord.includes(letter)) {
+                        button.classList.add("correct");
+                    } else {
+                        button.classList.add("wrong");
+                    }
+                }
+            });
+
+            // Check if letter is in the word
+            if (selectedWord.includes(letter)) {
+                updateWordDisplay();
+                checkWin();
+            } else {
+                wrongGuesses++;
+                wrongCountEl.textContent = wrongGuesses;
+
+                // Show hangman part
+                if (wrongGuesses <= maxWrongGuesses) {
+                    hangmanParts[wrongGuesses - 1].style.display = "block";
+                }
+
+                checkLose();
+            }
+        }
+
+        // Check if player has won
+        function checkWin() {
+            const wordArray = selectedWord.split("");
+            const hasWon = wordArray.every(letter => guessedLetters.includes(letter));
+
+            if (hasWon) {
+                gameOver = true;
+                resultMessageEl.textContent = "Sveikinu! Tu atspėjai! 🎉";
+                resultMessageEl.style.color = "#2ecc71";
+            }
+        }
+
+        // Check if player has lost
+        function checkLose() {
+            if (wrongGuesses >= maxWrongGuesses) {
+                gameOver = true;
+                resultMessageEl.textContent = `Pralaimėjai! Žodis buvo: ${selectedWord}`;
+                resultMessageEl.style.color = "#e74c3c";
+                wordDisplayEl.textContent = selectedWord;
+            }
+        }
+
+        // Start a new game
+        newGameBtn.addEventListener("click", initGame);
+
+        // Handle keyboard input
+        document.addEventListener("keydown", (event) => {
+            if (gameOver) return;
+
+            const key = event.key.toUpperCase();
+            if (/^[A-Z]$/.test(key)) {
+                handleGuess(key);
+            }
+        });
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+
+</html>
