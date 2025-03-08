@@ -44,7 +44,7 @@
 
         .game-container {
             display: flex;
-            justify-content: space-between;
+            /* justify-content: space-between; */
             margin: 30px 0;
         }
 
@@ -53,12 +53,18 @@
             height: 250px;
             border: 1px solid #ccc;
             position: relative;
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .game-info {
+            flex: 1;
         }
 
         .word-display {
             margin: 20px 0;
             font-size: 2em;
-            letter-spacing: 8px;
+            letter-spacing: 4px;
             white-space: nowrap;
             overflow: hidden;
             display: inline-block;
